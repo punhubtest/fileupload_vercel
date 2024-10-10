@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Drag and Drop File Upload with AJAX</title>
+    <style>
+        .drop-zone {
+            max-width: 300px;
+            padding: 20px;
+            border: 2px dashed #ccc;
+            border-radius: 10px;
+            text-align: center;
+            cursor: pointer;
+        }
+
+        .drop-zone.dragging {
+            border-color: #000;
+            background-color: #f0f0f0;
+        }
+
+        #fileInput {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+
+    <h2>Upload a File</h2>
+
+    <form id="uploadForm">
+        <div id="dropZone" class="drop-zone">
+            Drag and drop a file or click to select
+        </div>
+        <input type="file" id="fileInput" name="file" required>
+        <button type="submit">Upload</button>
+    </form>
+
+    <div id="uploadStatus"></div>
+
+    <script>
+        const dropZone = document.getElementById('dropZone');
+        const fileInput = document.getElementById('fileInput');
+
+        // Drag and Drop Events
+        dropZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropZone.classList.add('dragging');
+        });
+
+        dropZone.addEventListener('dragleave', () => {
+            dropZone.classList.remove('dragging');
+        });
+
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('dragging');
+
+            // Get the dropped file
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                fileInput.files = files;  // Set the fileInput to the dropped files
+                uploadFile(files[0]);
+            }
+        });
+
+        // Click event to open file dialog
+        dropZone.addEventListener('click', () => {
+            fileInput.click();
+        });
+
+        fileInput.addEventListener('change', () => {
+            if (fileInput.files.length > 0) {
+                uploadFile(fileInput.files[0]);
+            }
+        });
+
+        // Form submission
+        document.getElementById('uploadForm').addEventListener('submit', function(e) {
+            e.preventDefault(); // Prevent default form submission
+            if (fileInput.files.length > 0) {
+                uploadFile(fileInput.files[0]);
+            } else {
+                document.getElementById('uploadStatus').innerHTML = "Please select or drop a file.";
+            }
+        });
+
+        function uploadFile(file) {
+            const formData = new FormData();
+            formData.append('file', file);
+
+            const xhr = new XMLHttpRequest();
+            xhr.open('POST', '/upload', true); // Change '/upload' to your server-side endpoint
+
+            xhr.onload = function() {
+                if (xhr.status === 200) {
+                    document.getElementById('uploadStatus').innerHTML = 'File uploaded successfully!';
+                } else {
+                    document.getElementById('uploadStatus').innerHTML = 'File upload failed.';
+                }
+            };
+
+            xhr.onerror = function() {
+                document.getElementById('uploadStatus').innerHTML = 'An error occurred during the file upload.';
+            };
+
+            xhr.send(formData);
+        }
+    </script>
+
+</body>
+</html>
